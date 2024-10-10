@@ -1,0 +1,17 @@
+aiohttp
+beautifulsoup4
+delft
+httpx
+lmdb
+lxml
+numpy
+openai
+pandas
+protobuf
+PyYAML
+Requests
+setuptools
+spacy
+tenacity
+textstat
+tqdm

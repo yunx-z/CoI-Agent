@@ -35,9 +35,9 @@ def extract(text, type):
 
 
 async def fetch(url):
-    time.sleep(1)
+    await asyncio.sleep(1) 
     try:
-        timeout = aiohttp.ClientTimeout(total=180)
+        timeout = aiohttp.ClientTimeout(total=120)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get(url) as response:
                 if response.status == 200:
@@ -45,11 +45,16 @@ async def fetch(url):
                     return content
                 else:
                     await asyncio.sleep(0.01)
-                    print(f"Failed to fetch the URL: {url}")
+                    print(f"Failed to fetch the URL: {url} with status code: {response.status}")
                     return None
-    except Exception as e:
+    except aiohttp.ClientError as e:  # 更具体的异常捕获
         await asyncio.sleep(0.01)
         print(f"An error occurred while fetching the URL: {url}")
+        print(e)
+        return None
+    except Exception as e:
+        await asyncio.sleep(0.01)
+        print(f"An unexpected error occurred while fetching the URL: {url}")
         print(e)
         return None
     
@@ -300,65 +305,16 @@ Abstract: {paper['abstract']}
                 if len(final_results) >= max_results:
                     break
         return final_results
-    
-    async def search_paper_cited_by_async(self,title,rerank_query,llm,paper_list = []):
-        print(f"Searching for papers cited by <{title}>")
-        results = await self.search_papers_async(title,limit = 5)
-        citations = []
-        if not results or "data" not in results:
-            return None
-        for result in results["data"]:
-            for citation in result["citations"]:
-                if os.path.exists(os.path.join(self.save_file, f"{citation['title']}.pdf")) and citation["title"] not in paper_list:
-                    citations.append(citation)
-                elif citation["title"] in self.ban_paper or citation["isOpenAccess"] == False or citation["openAccessPdf"] == None or citation["abstract"] == None or citation["title"] in paper_list:
-                    continue
-                else:
-                    citations.append(citation)
 
-        if len(citations) >= 200:
-            import random
-            citations = random.sample(citations,50)
-
-        if llm and rerank_query:
-            rerank_query_embbeding = llm.get_embbeding(rerank_query)
-            rerank_query_embbeding = np.array(rerank_query_embbeding)
-            citations = await self.rerank_papers_async(rerank_query_embbeding, citations,llm)
-            citations = [citation[0] for citation in citations]
-
-        relevant_citation = None
-        
-        for citation in citations:
-            if os.path.exists(os.path.join(self.save_file, f"{citation['title']}.pdf")):
-                relevant_citation = citation
-                break
-            flag = await self.download_pdf_async(citation["openAccessPdf"]["url"],f"{citation['title']}.pdf")
-            if flag:
-                citation["pdf_link"] = f"{citation['title']}.pdf"
-                relevant_citation = citation
-                break
-        if not relevant_citation:
-            for citation in citations:
-                print(citation["title"],end="")
-            print(f"No relevant citation found for the paper <{title}>")
-            return None
-        title = relevant_citation["title"] if "title" in relevant_citation else ""
-        abstract = relevant_citation["abstract"] if "abstract" in relevant_citation else ""
-        pdf_link = relevant_citation["pdf_link"] if "pdf_link" in relevant_citation else ""
-        citationCount = relevant_citation["citationCount"] if "citationCount" in relevant_citation else 0
-        year = relevant_citation["year"] if "year" in relevant_citation else None
-        result = Result(title,abstract,pdf_link,citationCount,year)
-        return result
-    
-    
     async def search_related_paper_async(self,title,need_citation = True,need_reference = True,rerank_query = None,llm = None,paper_list = []):
-        print(f"Searching for papers related to <{title}>")
+        print(f"Searching for related papers of paper <{title}>; Citation:{need_citation}; Reference:{need_reference}")
         fileds = ["title","abstract","citations.title","citations.abstract","citations.citationCount","references.title","references.abstract","references.citationCount","citations.isOpenAccess","citations.openAccessPdf","references.isOpenAccess","references.openAccessPdf","citations.year","references.year"]
         results = await self.search_papers_async(title,limit = 3,fields=fileds)
         related_papers = []
         related_papers_title = []
         if not results or "data" not in results:
-            return []
+            print(f"Failed to find related papers of paper <{title}>; Citation:{need_citation}; Reference:{need_reference}")
+            return None
         for result in results["data"]:
             if not result:
                 continue
@@ -403,9 +359,14 @@ Abstract: {paper['abstract']}
             related_papers = [[paper["title"],paper["abstract"],paper["openAccessPdf"]["url"],paper["citationCount"],paper['year']] for paper in related_papers]
             related_papers = sorted(related_papers,key = lambda x: x[3],reverse = True)
             related_papers = [Result(paper[0],paper[1],paper[2],paper[3]) for paper in related_papers]
-        if len(related_papers) >= 10:
-            related_papers = related_papers[:10]
-        return related_papers
+
+        for paper in related_papers:
+            url = paper.pdf_link
+            article = await self.read_arxiv_from_link_async(url, f"{paper.title}.pdf")
+            if article:
+                return paper
+        print(f"Failed to find related papers of paper <{title}>; Citation:{need_citation}; Reference:{need_reference}")
+        return None
 
     
     async def search_paper_for_abstract_async(self,query,fields = ["title","abstract"]):

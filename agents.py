@@ -307,7 +307,7 @@ class DeepResearchAgent:
         # search before
         while len(idea_chain)<self.max_chain_length:
             rerank_query = f"{self.topic} {current_title} {current_abstract}"
-            citation_paper = await self.reader.search_paper_cited_by_async(current_title,rerank_query=rerank_query,llm=self.llm,paper_list=idea_papers)
+            citation_paper = await self.reader.search_related_paper_async(current_title,need_reference=False,rerank_query=rerank_query,llm=self.llm,paper_list=idea_papers)
             if not citation_paper:
                 break
 
@@ -364,10 +364,9 @@ class DeepResearchAgent:
             
             if not article:
                 rerank_query = f"topic: {self.topic} Title: {current_title} Abstract: {current_abstract}"
-                search_paper = await self.reader.search_related_paper_async(current_title,need_citation=False,rerank_query = rerank_query,llm=self.llm,paper_list=idea_papers)
-                if len(search_paper) == 0:
+                s_p = await self.reader.search_related_paper_async(current_title,need_citation=False,rerank_query = rerank_query,llm=self.llm,paper_list=idea_papers)
+                if not s_p:
                     continue
-                s_p = search_paper[0]
                 if len(idea_chain) < self.min_chain_length:
                     article = await self.reader.read_arxiv_from_link_async(s_p.pdf_link,f"{s_p.title}.pdf")
                     if not article:

@@ -19,6 +19,7 @@ def get_content_between_a_b(start_tag, end_tag, text):
             start_index = text.find(start_tag, end_index + len(end_tag))
         else:
             break
+
     return extracted_text.strip()
 
 

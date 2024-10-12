@@ -142,7 +142,10 @@ class SementicSearcher:
         if not os.path.exists(pdf_path):
             print(f"The PDF file <{pdf_path}> does not exist.")
             return None
-        article_dict = scipdf.parse_pdf_to_dict(pdf_path)
+        try:
+            article_dict = scipdf.parse_pdf_to_dict(pdf_path)
+        except Exception as e:
+            return None
         return article_dict
         
     async def get_paper_embbeding_and_score_async(self,query_embedding, paper,llm):

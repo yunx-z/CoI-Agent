@@ -57,6 +57,24 @@ async def fetch(url):
         print(f"An unexpected error occurred while fetching the URL: {url}")
         print(e)
         return None
+
+def download(url, filename):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            content = response.content
+            return content
+        else:
+            print(f"Failed to download the PDF file: {filename}")
+            return None
+    except requests.RequestException as e:
+        print(f"An error occurred while downloading the PDF file: {filename}")
+        print(e)
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred while downloading the PDF file: {filename}")
+        print(e)
+        return None
     
 class Result:
     def __init__(self,title="",abstract="",pdf_link="",citations_conut = 0,year = None) -> None:
@@ -66,12 +84,8 @@ class Result:
         self.citations_conut = citations_conut
         self.year = year
 
-# Load the API key from the configuration file 
-with open('config.yaml') as f:
-   config = yaml.load(f, Loader=yaml.FullLoader)
-   api_key = config['SEMENTIC_SEARCH_API_KEY'] if 'SEMENTIC_SEARCH_API_KEY' in config else None
-   if api_key == "":
-      api_key = None
+# Load the API key from the configuration file
+api_key = os.environ.get("SEMENTIC_SEARCH_API_KEY", None)
 headers = {'x-api-key': api_key} if api_key else None
 
 # Define the API endpoint URL
@@ -447,6 +461,23 @@ Abstract: {paper['abstract']}
                 filename = filename.split("/")[-1]
             if "." in filename:
                 filename = filename.split(".")[0]
+            return False
+    
+    def download_pdf(self, pdf_link, filename):
+        filename = os.path.join(self.save_file, filename)
+        if os.path.exists(filename):
+            print(f"The PDF file <{filename}> already exists.")
+            return True
+        content = download(pdf_link, filename)
+        if not content:
+            print(f"Failed to download the PDF file: {filename}")
+            return False
+        try:
+            with open(filename, 'wb') as file:
+                file.write(content)
+            return True
+        except Exception as e:
+            print(f"Failed to download the PDF file: {e}, {filename}")
             return False
 
     def read_paper_title_abstract(self,article):

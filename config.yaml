@@ -7,15 +7,11 @@ AZURE_OPENAI_API_VERSION : ""
 OPENAI_API_KEY: ""
 OPENAI_BASE_URL: ""
 
-GEMINI_API_KEY: ""
-
 # if not set it will be set to the same as main llm
 EMBEDDING_API_KEY: ""
 EMBEDDING_API_ENDPOINT: ""
 EMBEDDING_MODEL: ""
 
-MAIN_LLM_TYPE: "" # "openai" or "gemini"
 MAIN_LLM_MODEL: "" # "gpt-4o" or ...
 
-CHEAP_LLM_TYPE: "" # "openai"  or "gemini"
-CHEAP_LLM_MODEL: ""
+CHEAP_LLM_MODEL: "" # "gpt-4o" or ...

@@ -1,16 +1,9 @@
 from openai import AzureOpenAI, OpenAI,AsyncAzureOpenAI,AsyncOpenAI
-
 from abc import abstractmethod
-import yaml
 import os
-with open('config.yaml', 'r') as file:
-    config = yaml.safe_load(file)
-for key, value in config.items():
-    os.environ[key] = str(value)
 import httpx
 import base64
 import logging
-import json
 import asyncio
 import numpy as np
 from tenacity import (
@@ -18,7 +11,6 @@ from tenacity import (
     stop_after_attempt,
     wait_fixed,
 )
-import google.generativeai as genai
 
 
 def get_content_between_a_b(start_tag, end_tag, text):
@@ -39,8 +31,8 @@ def before_retry_fn(retry_state):
         logging.info(f"Retrying API call. Attempt #{retry_state.attempt_number}, f{retry_state}")
 
 def encode_image(image_path):
-  with open(image_path, "rb") as image_file:
-    return base64.b64encode(image_file.read()).decode('utf-8')
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
 
 def get_openai_url(img_pth):
     end = img_pth.split(".")[-1]
@@ -57,43 +49,11 @@ class base_llm:
     def response(self,messages,**kwargs):
         pass
 
-    def get_imgs(self,prompt, save_path="saves/dalle3.jpg"):
-        pass
-
-
-class gemini_llm(base_llm):
-    def __init__(self) -> None:
-        super().__init__()
-
-        api_key = os.environ.get("GEMINI_API_KEY",None)
-        assert api_key is not None, "GEMINI_API_KEY is not set"
-
-        model = os.environ.get("MAIN_LLM_MODEL",None)
-        assert model is not None, "MAIN_LLM_MODEL is not set"
-
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(model)
-
-
-    @retry(wait=wait_fixed(10), stop=stop_after_attempt(10), before=before_retry_fn)
-    async def response_async(self,messages,**kwargs):
-        text = messages[0]["content"]
-        try:
-            response = await self.model.generate_content_async(
-                text,
-            )
-        except Exception as e:
-            await asyncio.sleep(0.1)
-            print(f"get  response failed: {e}")
-            print(e)
-            return
-        return response.text
-
 
 class openai_llm(base_llm):
     def __init__(self,model = "gpt4o-0513") -> None:
         super().__init__()
-        is_azure = config.get("is_azure", True)
+        is_azure = os.environ.get("is_azure", True)
         self.model = model
 
         if is_azure:
@@ -178,33 +138,44 @@ class openai_llm(base_llm):
                 input=text,
                 timeout= 180
             )
-            return embbeding.data[0].embedding
+            embbeding = embbeding.data
+            if len(embbeding) == 0:
+                return None
+            elif len(embbeding) == 1:
+                return embbeding[0].embedding
+            else:
+                return [e.embedding for e in embbeding]
         except Exception as e:
             print(f"get embbeding failed: {e}")
             print(e)
             logging.info(e)
             return
     
+    @retry(wait=wait_fixed(10), stop=stop_after_attempt(10), before=before_retry_fn)
     async def get_embbeding_async(self,text):
-        if os.environ.get("EMBEDDING_API_ENDPOINT",None):
-            async_client = AsyncAzureOpenAI(
+        if os.environ.get("EMBEDDING_API_ENDPOINT"):
+            client = AsyncAzureOpenAI(
             azure_endpoint=os.environ.get("EMBEDDING_API_ENDPOINT",None),
             api_key=os.environ.get("EMBEDDING_API_KEY",None),
             api_version= os.environ.get("AZURE_OPENAI_API_VERSION",None),
             azure_deployment="embedding-3-large"
             )
         else:
-            async_client = self.async_client
-
+            client = self.async_client
         try:
-            embbeding = await async_client.embeddings.create(
+            embbeding = await client.embeddings.create(
                 model=os.environ.get("EMBEDDING_MODEL","text-embedding-3-large"),
                 input=text,
                 timeout= 180
             )
-            return embbeding.data[0].embedding
+            embbeding = embbeding.data
+            if len(embbeding) == 0:
+                return None
+            elif len(embbeding) == 1:
+                return embbeding[0].embedding
+            else:
+                return [e.embedding for e in embbeding]
         except Exception as e:
-            await asyncio.sleep(0.1)
             print(f"get embbeding failed: {e}")
             print(e)
             logging.info(e)
@@ -231,11 +202,3 @@ class openai_llm(base_llm):
 
         return response.choices[0].message.content
 
-
-if __name__ == "__main__":
-    llm = gemini_llm(api_key="")
-    prompt = """
-"""
-    messages = [{"role":"user","content":prompt}]
-    response = asyncio.run(llm.response_async(messages))
-    print(response)

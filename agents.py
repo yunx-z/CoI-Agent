@@ -3,26 +3,20 @@ import time
 import asyncio
 import os
 from searcher import Result,SementicSearcher
-from LLM import openai_llm,gemini_llm
+from LLM import openai_llm
 from prompts import *
 from utils import extract
 
 
-def get_llm(model_type = "openai",model = "gpt4o-0513"):
-    if model_type == "openai":
-        return openai_llm(model)
-    elif model_type == "gemini":
-        return gemini_llm(model)
-    else:
-        raise ValueError(f"model_type {model_type} is not supported")
+def get_llm(model = "gpt4o-0513"):
+    return openai_llm(model)
+
 
 def get_llms():
-    main_llm_type = os.environ.get("MAIN_LLM_TYPE","openai")
     main_llm = os.environ.get("MAIN_LLM_MODEL","gpt4o-0513")
-    cheap_llm_type = os.environ.get("CHEAP_LLM_TYPE","openai")
     cheap_llm= os.environ.get("CHEAP_LLM_MODEL","gpt-4o-mini")
-    main_llm = get_llm(main_llm_type,main_llm)
-    cheap_llm = get_llm(cheap_llm_type,cheap_llm)
+    main_llm = get_llm(main_llm)
+    cheap_llm = get_llm(cheap_llm)
     return main_llm,cheap_llm
 
 
@@ -161,10 +155,8 @@ class DeepResearchAgent:
         self.topic = topic
         if anchor_paper_path:
             article = self.reader.read_arxiv_from_path(anchor_paper_path)
-            title = article["title"]
-            abstract = article["abstract"]
-            pub_data = article["pub_date"]
-            paper = Result(title,abstract,anchor_paper_path,0,pub_data)
+            title,abstract,pub_data = article["title"],article["abstract"],article["pub_date"]
+            paper = Result(title,abstract,article,0,pub_data)
             papers = [paper]
         else:
             search_query = await self.get_search_query(topic=topic)
@@ -241,8 +233,8 @@ class DeepResearchAgent:
         print(f"successfully generated idea")
         return idea,experiment,entities,idea_chain,ideas,trend,future,human,year
     
-    async def get_paper_idea_experiment_references_info(self,paper):
-        article = await self.reader.read_arxiv_from_link_async(paper.pdf_link,f"{paper.title}.pdf")
+    async def get_paper_idea_experiment_references_info(self,paper:Result):
+        article = paper.article
         if not article:
             return None
         paper_content = self.reader.read_paper_content(article)
@@ -268,7 +260,7 @@ class DeepResearchAgent:
 
     
     async def get_paper_info_for_refine_experiment(self,paper,experiment,suggestions):
-        article = await self.reader.read_arxiv_from_link_async(paper.pdf_link,f"{paper.title}.pdf")
+        article = paper.article
         if not article:
             return {"title":paper.title,"info":info}
         paper_content = self.reader.read_paper_content_with_ref(article)
@@ -281,15 +273,11 @@ class DeepResearchAgent:
     
     async def deep_research_paper_with_chain(self,paper:Result): 
         print(f"begin to deep research paper {paper.title}")
-        article = await self.reader.read_arxiv_from_link_async(paper.pdf_link,f"{paper.title}.pdf")
+        article = paper.article
         if not article:
             print(f"failed to deep research paper {paper.title}")
             return None
-        idea_chain = []
-        idea_papers = []
-        experiments = []
-        total_entities = []
-        years = []
+        idea_chain,idea_papers,experiments,total_entities,years = [],[],[],[],[]
         idea,experiment,entities,references = await self.get_article_idea_experiment_references_info(article)
         try:
             references = json.loads(references)
@@ -312,7 +300,6 @@ class DeepResearchAgent:
                 break
 
             title = citation_paper.title
-            abstract = citation_paper.abstract
             prompt = get_deep_judge_relevant_prompt(current_title,current_abstract,self.topic)
             messages = self.wrap_messages(prompt)
             response = await self.get_openai_response_async(messages)
@@ -330,7 +317,7 @@ class DeepResearchAgent:
                 current_title = citation_paper.title
                 current_abstract = citation_paper.abstract
             else:
-                print(f"the paper {title} is not relevant")
+                print(f"the paper {title} is not relevant to the topic")
                 break
 
         current_title = paper.title
@@ -341,51 +328,50 @@ class DeepResearchAgent:
             article = None
             print(f"The references find:{references}")
             while len(references) > 0 and len(search_paper) == 0:
-                reference = references[0]
-                references.pop(0)
+                reference = references.pop(0)
                 if reference in self.read_papers:
                     continue
-                search_paper = await self.reader.search_async(reference,3,llm=self.llm,publicationDate=self.publicationData,paper_list= idea_papers)
-                if len(search_paper) > 0:
-                    s_p = search_paper[0]
-                    if s_p and  s_p.title not in self.read_papers:
-                        prompt = get_deep_judge_relevant_prompt(current_title,current_abstract,self.topic)
+                search_papers = await self.reader.search_async(reference,1,llm=self.llm,publicationDate=self.publicationData,paper_list= idea_papers)
+                if len(search_papers) > 0:
+                    search_paper = search_papers[0]
+                    if search_paper and  search_paper.title not in self.read_papers:
+                        prompt = get_deep_judge_relevant_prompt(search_paper.title,search_paper.abstract,self.topic)
                         messages = self.wrap_messages(prompt)
                         response = await self.get_openai_response_async(messages)
                         relevant = extract(response,"relevant")
                         if relevant != "0" or len(idea_chain) < self.min_chain_length:
-                            article = await self.reader.read_arxiv_from_link_async(s_p.pdf_link,f"{s_p.title}.pdf")
+                            article = search_paper.article
                             if article:
-                                cite_paper = s_p
+                                cite_paper = search_paper
                                 break
                         else:
-                            print(f"the paper {s_p.title} is not relevant")
-                search_paper = []
+                            print(f"the paper {search_paper.title} is not relevant")
+                search_papers = []
             
             if not article:
                 rerank_query = f"topic: {self.topic} Title: {current_title} Abstract: {current_abstract}"
-                s_p = await self.reader.search_related_paper_async(current_title,need_citation=False,rerank_query = rerank_query,llm=self.llm,paper_list=idea_papers)
-                if not s_p:
+                search_paper= await self.reader.search_related_paper_async(current_title,need_citation=False,rerank_query = rerank_query,llm=self.llm,paper_list=idea_papers)
+                if not search_paper:
                     continue
                 if len(idea_chain) < self.min_chain_length:
-                    article = await self.reader.read_arxiv_from_link_async(s_p.pdf_link,f"{s_p.title}.pdf")
+                    article = search_paper.article
                     if not article:
                         continue
                     else:
-                        cite_paper = s_p
+                        cite_paper = search_paper
                         break
                 else:
-                    if s_p and s_p.title not in self.read_papers:
+                    if search_paper and search_paper.title not in self.read_papers:
                         prompt = get_deep_judge_relevant_prompt(current_title,current_abstract,self.topic)
                         messages = self.wrap_messages(prompt)
                         response = await self.get_openai_response_async(messages)
                         relevant = extract(response,"relevant")
                         if relevant == "1" or len(idea_chain) < self.min_chain_length:
-                            article = await self.reader.read_arxiv_from_link_async(s_p.pdf_link,f"{s_p.title}.pdf")
+                            article = search_paper.article
                             if not article:
                                 continue
                             else:
-                                cite_paper = s_p
+                                cite_paper = search_paper
                                 break
             if not article:
                 continue
@@ -554,11 +540,11 @@ class DeepResearchAgent:
             if not suggestion:
                 break
             experiment = await self.refine_experiment(experiment,suggestion,entities)
-            cnt += 1
             print(f"successfully improved experiment {cnt}")
             experiments.append(experiment)
             with open(os.path.join(self.log_save_file,"experiments.json"),"w") as f:
                 json.dump(experiments,f)
+            cnt += 1
         return experiment 
     
     async def get_check_novel_search_query(self,idea):

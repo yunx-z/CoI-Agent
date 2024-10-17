@@ -24,14 +24,12 @@ pip install -r requirements.txt
 **Step 2**:
 Install [SciPDF Parser](https://github.com/titipata/scipdf_parser) for PDF parsing.
 
-
-### API config
-set config.yaml to use the OpenAI APIs.
+**Step 3**:
+set config.yaml to use the LLM APIs.
 ```yaml
 # Sementic scholor api, it should be filled
 SEMENTIC_SEARCH_API_KEY: ""
 
-# Openai api settings
 AZURE_OPENAI_ENDPOINT : ""
 AZURE_OPENAI_KEY : ""
 AZURE_OPENAI_API_VERSION : ""
@@ -39,18 +37,13 @@ AZURE_OPENAI_API_VERSION : ""
 OPENAI_API_KEY: ""
 OPENAI_BASE_URL: ""
 
-# Gemini api settings
-GEMINI_API_KEY: ""
-
-# if not set it will be set to the same as main llm,current only support openai
+# if not set it will be set to the same as main llm
 EMBEDDING_API_KEY: ""
 EMBEDDING_API_ENDPOINT: ""
 EMBEDDING_MODEL: ""
 
-MAIN_LLM_TYPE: "" # "openai" or "gemini"
 MAIN_LLM_MODEL: "" # "gpt-4o" or ...
 
-CHEAP_LLM_TYPE: "" # "openai"  or "gemini"
 CHEAP_LLM_MODEL: "" # "gpt-4o" or ...
 ```
 

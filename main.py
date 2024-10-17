@@ -2,6 +2,13 @@ from agents import DeepResearchAgent,ReviewAgent,get_llms
 import asyncio
 import json
 import argparse
+import yaml
+import os
+with open('config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
+for key, value in config.items():
+    os.environ[key] = str(value)
+
 
 if __name__ == '__main__':
 

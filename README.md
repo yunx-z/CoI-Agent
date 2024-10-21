@@ -1,6 +1,14 @@
+<p align="center">
+    <img src="assets/logo.jpg" width="16%" height="25%">
+    <img src="assets/title.png" width="55%" height="55%">
+</p>
+
 <h3 align="center">
 CoI Agent: Revolutionizing Research in Novel Idea Development with LLM Agents
 </h3>
+
+<font size=3><div align='center' > [[📖 arXiv Paper](https://arxiv.org/pdf/2410.13185)] [[📊 Online Demo](https://huggingface.co/spaces/DAMO-NLP-SG/CoI_Agent)] </div></font>
+
 
 <p align="center">
 <a href="https://opensource.org/license/apache-2-0"><img src="https://img.shields.io/badge/Code%20License-Apache_2.0-green.svg"></a>
@@ -9,7 +17,7 @@ CoI Agent: Revolutionizing Research in Novel Idea Development with LLM Agents
 </p>
 
 
-##  📰 Update
+## 🔥 News
 * **[2024.10.12]**  The first version of CoI Agent!
 
 

@@ -4,7 +4,7 @@
 </p>
 
 <h3 align="center">
-CoI Agent: Revolutionizing Research in Novel Idea Development with LLM Agents
+Chain-of-Ideas Agent: Revolutionizing Research in Novel Idea Development with LLM Agents
 </h3>
 
 <font size=3><div align='center' > [[📖 arXiv Paper](https://arxiv.org/pdf/2410.13185)] [[📊 Online Demo](https://huggingface.co/spaces/DAMO-NLP-SG/CoI_Agent)] </div></font>
@@ -84,7 +84,9 @@ If you find our work helpful for your research, please consider starring the rep
 ```bibtex
 @article{li2024chain,
   title={Chain of Ideas: Revolutionizing Research in Novel Idea Development with LLM Agents},
-  author={Li, Long and Xu, Weiwen and Guo, Jiayan and Zhao, Ruochen and Li, Xinxuan and Yuan, Yuqian and Zhang, Boqiang and Jiang, Yuming and Xin, Yifei and Dang, Ronghao and others},
+  author={Li, Long and Xu, Weiwen and Guo, Jiayan and Zhao, Ruochen and Li, Xinxuan and Yuan,
+            Yuqian and Zhang, Boqiang and Jiang, Yuming and Xin, Yifei and Dang, Ronghao and 
+            Rong, Yu and Zhao, Deli and Feng, Tian and Bing, Lidong},
   journal={arXiv preprint arXiv:2410.13185},
   year={2024},
   url={https://arxiv.org/abs/2410.13185}

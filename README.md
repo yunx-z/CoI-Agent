@@ -57,7 +57,9 @@ CHEAP_LLM_MODEL: "" # "gpt-4o" or ...
 
 ## 🚀 Quick Start
 **Step 1**:
+
 **Run grobid**
+
 If you git clone https://github.com/titipata/scipdf_parser.git
 ```bash
 cd scipdf_parser
@@ -75,3 +77,16 @@ cd grobid
 python main.py --topic {your research topic}
 ```
 
+## :black_nib: Citation
+
+If you find our work helpful for your research, please consider starring the repo and citing our work.   
+
+```bibtex
+@article{li2024chain,
+  title={Chain of Ideas: Revolutionizing Research in Novel Idea Development with LLM Agents},
+  author={Li, Long and Xu, Weiwen and Guo, Jiayan and Zhao, Ruochen and Li, Xinxuan and Yuan, Yuqian and Zhang, Boqiang and Jiang, Yuming and Xin, Yifei and Dang, Ronghao and others},
+  journal={arXiv preprint arXiv:2410.13185},
+  year={2024},
+  url={https://arxiv.org/abs/2410.13185}
+}
+```

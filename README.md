@@ -56,9 +56,7 @@ CHEAP_LLM_MODEL: "" # "gpt-4o" or ...
 ```
 
 ## 🚀 Quick Start
-**Step 1**:
-
-**Run grobid**
+**Step 1**: Run grobid
 
 If you git clone https://github.com/titipata/scipdf_parser.git
 ```bash
@@ -72,7 +70,7 @@ cd grobid
 ./gradlew run
 ```
 
-**Step 2**:
+**Step 2**: Generate idea
 ```python
 python main.py --topic {your research topic}
 ```

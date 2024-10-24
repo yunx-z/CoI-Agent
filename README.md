@@ -4,7 +4,7 @@
 </p>
 
 <h3 align="center">
-Chain-of-Ideas Agent: Revolutionizing Research in Novel Idea Development with LLM Agents
+Chain-of-Ideas Agent: Revolutionizing Research Via Novel Idea Development with LLM Agents
 </h3>
 
 <font size=3><div align='center' > [[📖 arXiv Paper](https://arxiv.org/pdf/2410.13185)] [[📊 Online Demo](https://huggingface.co/spaces/DAMO-NLP-SG/CoI_Agent)] </div></font>
@@ -31,8 +31,21 @@ pip install -r requirements.txt
 
 **Step 2**:
 Install [SciPDF Parser](https://github.com/titipata/scipdf_parser) for PDF parsing.
+```bash
+git clone https://github.com/titipata/scipdf_parser.git
+pip install git+https://github.com/titipata/scipdf_parser
+python -m spacy download en_core_web_sm
+```
 
 **Step 3**:
+Install java for grobid
+```bash
+wget  https://download.oracle.com/java/GA/jdk11/9/GPL/openjdk-11.0.2_linux-x64_bin.tar.gz
+tar -zxvf openjdk-11.0.2_linux-x64_bin.tar.gz
+export JAVA_HOME=Your_path/jdk-11.0.2
+```
+
+**Step 4**:
 set config.yaml to use the LLM APIs.
 ```yaml
 # Sementic scholor api, it should be filled
@@ -64,9 +77,11 @@ cd scipdf_parser
 bash serve_grobid.sh
 ```
 
-elif you download the grobid
+If you are unable to start grobid normally through the previous step, you can follow the following process to install it
 ```bash
+git clone https://github.com/kermitt2/grobid.git
 cd grobid
+./gradlew clean install
 ./gradlew run
 ```
 

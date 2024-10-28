@@ -145,8 +145,6 @@ class SementicSearcher:
         if len(paper_list) == 0:
             return []
         paper_list = [paper for paper in paper_list if paper]
-        if len(paper_list) >= 50:
-            paper_list = random.sample(paper_list,50)
         paper_contents = []
         for paper in paper_list:
             paper_content = f"""

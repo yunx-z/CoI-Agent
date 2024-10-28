@@ -196,8 +196,9 @@ Based on previous research, analyze how human experts think and transition from 
 
 Additionally, you are encouraged to adopt the following three modes of thinking:
 1. Reflection: Reflect on scenarios where a specific method encounters significant challenges. Consider potential solutions that could effectively address these issues, make the solutions sounds reasonable, novel and amazing.
-2. Analogy: Identify a specific problem you are currently facing and research existing solutions that have successfully tackled similar challenges. Explore these solutions and adapt key principles and strategies to your situation. Think creatively about how tools and approaches from other domains can be reimagined to devise a novel strategy for your issue. Encourage you to actively explore methods in other fields to solve your current problems. 
+2. Analogy:  Identify a specific problem you are currently facing. Analyze whether similar issues exist in other fields and how those areas have addressed these problems. Consider if their solutions can be adapted and applied to resolve your current challenge.
 3. Deep Dive: Some methods may present specific approaches to addressing a particular problem. Consider whether there are aspects that could be modified to enhance their rationale and effectiveness.
+4. Imitate: Analyze the research approaches from previous studies, reflecting on how they progressively advanced their investigations. Learn from their methodologies and propose your next steps.
 
 Note:Each article's limitations are specific to that particular piece and should not be applied to others. Carefully consider the task at hand and analyze the potential issues you might encounter if you proceed with your original approach, reflecting on the challenges previously faced. Then, think critically about how to address these issues effectively.
 
@@ -309,20 +310,22 @@ Task: Based on the current literature, propose a research idea that incorporates
 Please adhere to the following guidelines:
 1. Your research idea should be innovative, feasible, and contribute meaningfully to the field. Please carefully examine the idea you have proposed, avoid immediate perception, and try to be different from the previous methods as much as possible
 2. Ensure your proposal is solid, clearly defined, and practical to implement. Logic should underpin your reasoning.
-3. Write in clear, concise language aimed at an audience with limited background knowledge in the subject. Avoid complex technical jargon, but when professional terms are necessary, provide thorough explanations.
+3. Write in clear language aimed at an audience with limited background knowledge in the subject. Avoid complex technical jargon, but when professional terms are necessary, provide thorough explanations.
 4. Refrain from introducing concepts from uncertain fields to prevent proposing ideas that may be incorrect or impractical.
 When referencing other research, please include the titles of the cited papers.
+
 
 {trend}
 
 {idea}
 
-The final idea should clearly explain the origins, motivation, and challenges of your idea, detailing how you overcame these hurdles. 
+The idea should be related to the topic: {topic}.
+
+The final idea should contains the title, clearly explain the origins, motivation, novelty, difference of previous works and challenges of your idea, detailing how you overcame these hurdles. 
 Please output strictly in the following format:
 <final_idea> {{the final idea}} </final_idea>
 """
     return prompt
-
 
 def get_deep_check_idea_novel_prompt(idea,papers):
     papers_content = ""

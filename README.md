@@ -51,10 +51,14 @@ set config.yaml to use the LLM APIs.
 # Sementic scholor api, it should be filled
 SEMENTIC_SEARCH_API_KEY: ""
 
+is_azure : True # if false, it is openai
+
+# set it if you set is_azure to True
 AZURE_OPENAI_ENDPOINT : ""
 AZURE_OPENAI_KEY : ""
 AZURE_OPENAI_API_VERSION : ""
 
+# set it if you set is_azure to False
 OPENAI_API_KEY: ""
 OPENAI_BASE_URL: ""
 

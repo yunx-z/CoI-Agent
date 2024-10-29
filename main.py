@@ -9,7 +9,8 @@ with open('config.yaml', 'r') as file:
 for key, value in config.items():
     if value == "":
         continue
-    os.environ[key] = str(value)
+    else:
+        os.environ[key] = str(value)
 
 
 if __name__ == '__main__':

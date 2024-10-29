@@ -13,6 +13,10 @@ def get_llm(model = "gpt4o-0513"):
 
 
 def get_llms():
+    if "MAIN_LLM_MODEL" not in os.environ or os.environ["MAIN_LLM_MODEL"] == "":
+        raise ValueError("MAIN_LLM_MODEL is not set")
+    if "CHEAP_LLM_MODEL" not in os.environ or os.environ["CHEAP_LLM_MODEL"] == "":
+        raise ValueError("CHEAP_LLM_MODEL is not set")
     main_llm = os.environ.get("MAIN_LLM_MODEL","gpt4o-0513")
     cheap_llm= os.environ.get("CHEAP_LLM_MODEL","gpt-4o-mini")
     main_llm = get_llm(main_llm)

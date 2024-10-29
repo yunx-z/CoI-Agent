@@ -7,6 +7,8 @@ import os
 with open('config.yaml', 'r') as file:
     config = yaml.safe_load(file)
 for key, value in config.items():
+    if value == "":
+        continue
     os.environ[key] = str(value)
 
 

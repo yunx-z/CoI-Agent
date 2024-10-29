@@ -1,6 +1,5 @@
 aiohttp
 beautifulsoup4
-delft
 httpx
 lmdb
 lxml

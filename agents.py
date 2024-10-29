@@ -328,10 +328,9 @@ class DeepResearchAgent:
         current_abstract = paper.abstract
         # search after
         while len(idea_chain) < self.max_chain_length and len(references) > 0:
-            search_papers = []
             article = None
             print(f"The references find:{references}")
-            while len(references) > 0 and len(search_papers) == 0:
+            while len(references) > 0:
                 reference = references.pop(0)
                 if reference in self.read_papers:
                     continue
@@ -350,7 +349,6 @@ class DeepResearchAgent:
                                 break
                         else:
                             print(f"the paper {search_paper.title} is not relevant")
-                search_papers = []
             
             if not article:
                 rerank_query = f"topic: {self.topic} Title: {current_title} Abstract: {current_abstract}"

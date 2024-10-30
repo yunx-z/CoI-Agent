@@ -81,7 +81,7 @@ cd scipdf_parser
 bash serve_grobid.sh
 ```
 
-Or, you can refer to the following process to install grobid if the previous commands fail:
+(Optional) Or, you can refer to the following process to install grobid if the previous commands fail:
 ```bash
 git clone https://github.com/kermitt2/grobid.git
 cd grobid

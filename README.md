@@ -75,7 +75,7 @@ CHEAP_LLM_MODEL: "" # "gpt-4o" or ...
 ## 🚀 Quick Start
 **Step 1**: Run grobid
 
-If you can successfully start grobid in [scipdf_parser](https://github.com/titipata/scipdf_parser.git), run the following commands:
+If you can successfully start grobid in [SciPDF Parser](https://github.com/titipata/scipdf_parser.git), run the following commands:
 ```bash
 cd scipdf_parser
 bash serve_grobid.sh

@@ -1,0 +1,11 @@
+*.yaml
+jdk-11.0.2/
+scipdf_parser/
+grobid/
+logs/
+papers/
+result.json
+results/
+run.sh
+saves/
+__pycache__

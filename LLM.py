@@ -102,17 +102,28 @@ class openai_llm(base_llm):
         return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
     
     
-    @retry(wait=wait_fixed(10), stop=stop_after_attempt(10), before=before_retry_fn)
+    @retry(wait=wait_fixed(60), stop=stop_after_attempt(10), before=before_retry_fn)
     def response(self,messages,**kwargs):
+        openai_model = kwargs.get("model", self.model)
         try:
-            response = self.client.chat.completions.create(
-                model=kwargs.get("model", self.model),
-                messages=messages,
-                n = kwargs.get("n", 1),
-                temperature= kwargs.get("temperature", 0.7),
-                max_tokens=kwargs.get("max_tokens", 4000),
-                timeout=kwargs.get("timeout", 180)
-            )
+            if "o1" in openai_model.lower():
+                response = self.client.chat.completions.create(
+                    model=openai_model,
+                    messages=messages,
+                    n = kwargs.get("n", 1),
+                    temperature= 1,
+                    max_completion_tokens=32000,
+                    timeout=kwargs.get("timeout", 180)
+                )
+            else:
+                response = self.client.chat.completions.create(
+                    model=openai_model,
+                    messages=messages,
+                    n = kwargs.get("n", 1),
+                    temperature=kwargs.get("temperature", 0.7),
+                    max_tokens=kwargs.get("max_tokens", 4000),
+                    timeout=kwargs.get("timeout", 180)
+                )
         except Exception as e:
             model = kwargs.get("model", self.model)
             print(f"get {model} response failed: {e}")
@@ -121,7 +132,7 @@ class openai_llm(base_llm):
             return
         return response.choices[0].message.content
     
-    @retry(wait=wait_fixed(10), stop=stop_after_attempt(10), before=before_retry_fn)
+    @retry(wait=wait_fixed(60), stop=stop_after_attempt(10), before=before_retry_fn)
     def get_embbeding(self,text):
         if os.environ.get("EMBEDDING_API_ENDPOINT"):
             client = AzureOpenAI(
@@ -151,7 +162,7 @@ class openai_llm(base_llm):
             logging.info(e)
             return
     
-    @retry(wait=wait_fixed(10), stop=stop_after_attempt(10), before=before_retry_fn)
+    @retry(wait=wait_fixed(60), stop=stop_after_attempt(10), before=before_retry_fn)
     async def get_embbeding_async(self,text):
         if os.environ.get("EMBEDDING_API_ENDPOINT"):
             client = AsyncAzureOpenAI(
@@ -181,17 +192,28 @@ class openai_llm(base_llm):
             logging.info(e)
             return
     
-    @retry(wait=wait_fixed(10), stop=stop_after_attempt(10), before=before_retry_fn)
+    @retry(wait=wait_fixed(60), stop=stop_after_attempt(10), before=before_retry_fn)
     async def response_async(self,messages,**kwargs):
         try:
-            response = await self.async_client.chat.completions.create(
-                model=kwargs.get("model", self.model),
-                messages=messages,
-                n = kwargs.get("n", 1),
-                temperature= kwargs.get("temperature", 0.7),
-                max_tokens=kwargs.get("max_tokens", 4000),
-                timeout=kwargs.get("timeout", 180)
-            )
+            openai_model = kwargs.get("model", self.model) 
+            if "o1" in openai_model.lower():
+                response = await self.async_client.chat.completions.create(
+                    model=openai_model,
+                    messages=messages,
+                    n = kwargs.get("n", 1),
+                    temperature= 1,
+                    max_completion_tokens=32000,
+                    timeout=kwargs.get("timeout", 180)
+                )
+            else:
+                response = await self.async_client.chat.completions.create(
+                    model=openai_model,
+                    messages=messages,
+                    n = kwargs.get("n", 1),
+                    temperature= kwargs.get("temperature", 0.7),
+                    max_tokens=kwargs.get("max_tokens", 4000),
+                    timeout=kwargs.get("timeout", 180)
+                )
         except Exception as e:
             await asyncio.sleep(0.1)
             model = kwargs.get("model", self.model)

@@ -19,10 +19,10 @@ if __name__ == '__main__':
     argparser.add_argument("--topic",type=str,help="research topic",default="Using diffusion to generate urban road layout map")
     argparser.add_argument("--anchor_paper_path",type=str,help="PDF path of the anchor paper",default= None)
     argparser.add_argument("--save_file",type=str,default="saves/",help="save file path")
-    argparser.add_argument("--improve_cnt",type=int,default= 1,help="experiment refine count")
-    argparser.add_argument("--max_chain_length t",type=int,default=5,help="max chain length")
-    argparser.add_argument("--min_chain_length",type=int,default=3,help="min chain length")
-    argparser.add_argument("--max_chain_numbers",type=int,default=1,help="max chain numbers")
+    argparser.add_argument("--improve_cnt",type=int,default=1,help="experiment refine count")
+    argparser.add_argument("--max_chain_length",type=int,default=10,help="max chain length")
+    argparser.add_argument("--min_chain_length",type=int,default=5,help="min chain length")
+    argparser.add_argument("--max_chain_numbers",type=int,default=1,help="max chain numbers, not used if anchor_paper_path is not None")
     
     args = argparser.parse_args()
 
@@ -44,5 +44,11 @@ if __name__ == '__main__':
         
     print(f"succeed to generate idea and experiment of topic {topic}")
     res = {"idea":idea,"experiment":experiment,"related_experiments":related_experiments,"entities":entities,"idea_chain":idea_chain,"ideas":ideas,"trend":trend,"future":future,"year":year,"human":human}
-    with open("result.json","w") as f:
-        json.dump(res,f)
+    anchor_paper_name = os.path.basename(anchor_paper_path).replace(".pdf", "")
+    outfile_dir = os.path.join("results", os.environ['MAIN_LLM_MODEL'], anchor_paper_name)
+    os.makedirs(outfile_dir, exist_ok=True)
+    outfile = os.path.join(outfile_dir, "result.json")
+    with open(outfile,"w") as f:
+        json.dump(res,f, indent=2)
+    print(res["idea"])
+    print(f"\n\ncheck out {outfile} for ideas!")

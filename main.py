@@ -23,6 +23,7 @@ if __name__ == '__main__':
     argparser.add_argument("--max_chain_length",type=int,default=10,help="max chain length")
     argparser.add_argument("--min_chain_length",type=int,default=5,help="min chain length")
     argparser.add_argument("--max_chain_numbers",type=int,default=1,help="max chain numbers, not used if anchor_paper_path is not None")
+    argparser.add_argument("--idea_idx",type=int,default=None,help="index for ideas if multiple ideas are to be sampled")
     
     args = argparser.parse_args()
 
@@ -37,18 +38,28 @@ if __name__ == '__main__':
 
     print(f"begin to generate idea and experiment of topic {topic}")
     idea,related_experiments,entities,idea_chain,ideas,trend,future,human,year=  asyncio.run(deep_research_agent.generate_idea_with_chain(topic,anchor_paper_path))
+    """
     experiment = asyncio.run(deep_research_agent.generate_experiment(idea,related_experiments,entities))
 
     for i in range(args.improve_cnt):
         experiment = asyncio.run(deep_research_agent.improve_experiment(review_agent,idea,experiment,entities))
-        
+    """ 
+    print("skip generating experiment")
+    experiment = ""
     print(f"succeed to generate idea and experiment of topic {topic}")
     res = {"idea":idea,"experiment":experiment,"related_experiments":related_experiments,"entities":entities,"idea_chain":idea_chain,"ideas":ideas,"trend":trend,"future":future,"year":year,"human":human}
     anchor_paper_name = os.path.basename(anchor_paper_path).replace(".pdf", "")
     outfile_dir = os.path.join("results", os.environ['MAIN_LLM_MODEL'], anchor_paper_name)
     os.makedirs(outfile_dir, exist_ok=True)
-    outfile = os.path.join(outfile_dir, "result.json")
+    if args.idea_idx is None:
+        outfile = os.path.join(outfile_dir, "result.json")
+    else:
+        outfile = os.path.join(outfile_dir, f"result{args.idea_idx}.json")
     with open(outfile,"w") as f:
         json.dump(res,f, indent=2)
     print(res["idea"])
-    print(f"\n\ncheck out {outfile} for ideas!")
+
+    api_cost = main_llm.api_cost + cheap_llm.api_cost  
+    print(f"\n\ncheck out {outfile} for ideas!\nThis run costs {api_cost} dollars")
+    with open(os.path.join(outfile_dir, "api_cost.txt"), 'w') as writer:
+        writer.write(f"{api_cost} dollars")

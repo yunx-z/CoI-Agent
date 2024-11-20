@@ -12,6 +12,37 @@ from tenacity import (
     wait_fixed,
 )
 
+# https://openai.com/api/pricing/
+MODEL2PRICE = {
+        "gpt-4-turbo" : {
+            "input" : 10 / 1e6,
+            "output" : 30 / 1e6,
+            },
+        "gpt-4o-gs" : {
+            "input" : 5 / 1e6,
+            "output" : 15 / 1e6,
+            },
+        "gpt-4o" : {
+            "input" : 2.5 / 1e6,
+            "output" : 10 / 1e6,
+            },
+        "gpt-4o-mini" : {
+            "input" : 0.15 / 1e6,
+            "output" : 0.6 / 1e6,
+            },
+        "o1-mini" : {
+            "input" : 3 / 1e6,
+            "output" : 12 / 1e6,
+            },
+        "o1-preview" : {
+            "input" : 15 / 1e6,
+            "output" : 60 / 1e6,
+            },
+        "text-embedding-3-large" : {
+            "input" : 0.13 / 1e6,
+            },
+        }
+
 
 def get_content_between_a_b(start_tag, end_tag, text):
     extracted_text = ""
@@ -55,6 +86,7 @@ class openai_llm(base_llm):
         super().__init__()
         is_azure = os.environ.get("is_azure", True)
         self.model = model
+        self.api_cost = 0
 
         if is_azure:
             if "AZURE_OPENAI_ENDPOINT" not in os.environ or os.environ["AZURE_OPENAI_ENDPOINT"] == "":
@@ -100,7 +132,11 @@ class openai_llm(base_llm):
         if isinstance(vec2, list):
             vec2 = np.array(vec2)
         return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
-    
+   
+    def cal_api_cost(self, response):
+        usage = response.usage
+        curr_cost = usage.prompt_tokens * MODEL2PRICE[self.model]["input"] + usage.completion_tokens * MODEL2PRICE[self.model]["output"] 
+        return curr_cost
     
     @retry(wait=wait_fixed(60), stop=stop_after_attempt(10), before=before_retry_fn)
     def response(self,messages,**kwargs):
@@ -130,6 +166,7 @@ class openai_llm(base_llm):
             print(e)
             logging.info(e)
             return
+        self.api_cost += self.cal_api_cost(response)
         return response.choices[0].message.content
     
     @retry(wait=wait_fixed(60), stop=stop_after_attempt(10), before=before_retry_fn)
@@ -144,11 +181,13 @@ class openai_llm(base_llm):
         else:
             client = self.client
         try:
+            emb_model = os.environ.get("EMBEDDING_MODEL","text-embedding-3-large") 
             embbeding = client.embeddings.create(
-                model=os.environ.get("EMBEDDING_MODEL","text-embedding-3-large"),
+                model=emb_model,
                 input=text,
                 timeout= 180
             )
+            self.api_cost += embbeding.usage.prompt_tokens * MODEL2PRICE[emb_model]["input"] 
             embbeding = embbeding.data
             if len(embbeding) == 0:
                 return None
@@ -174,11 +213,13 @@ class openai_llm(base_llm):
         else:
             client = self.async_client
         try:
+            emb_model = os.environ.get("EMBEDDING_MODEL","text-embedding-3-large") 
             embbeding = await client.embeddings.create(
-                model=os.environ.get("EMBEDDING_MODEL","text-embedding-3-large"),
+                model=emb_model,
                 input=text,
                 timeout= 180
             )
+            self.api_cost += embbeding.usage.prompt_tokens * MODEL2PRICE[emb_model]["input"] 
             embbeding = embbeding.data
             if len(embbeding) == 0:
                 return None
@@ -221,6 +262,6 @@ class openai_llm(base_llm):
             print(e)
             logging.info(e)
             return
-
+        self.api_cost += self.cal_api_cost(response)
         return response.choices[0].message.content
 

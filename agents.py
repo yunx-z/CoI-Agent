@@ -488,7 +488,7 @@ class DeepResearchAgent:
                 similar_paper_id = int(similar_paper_id) if similar_paper_id else 0
                 similar_paper  = papers[similar_paper_id]
             except:
-                pass
+                similar_paper = None
             return novel,similar_paper,summary
     
 

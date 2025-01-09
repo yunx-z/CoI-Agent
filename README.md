@@ -20,6 +20,13 @@ Chain-of-Ideas Agent: Revolutionizing Research Via Novel Idea Development with L
 ## 🔥 News
 * **[2024.10.12]**  The first version of CoI Agent!
 
+## My Instructions
+To add a new task, complete TODO items in `main.py`.
+
+To generate ideas:
+```
+bash run.sh ${TASK} ${MODEL}
+```
 
 ## 🛠️ Requirements and Installation
 **Step 1**:

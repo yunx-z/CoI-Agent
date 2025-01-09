@@ -8,4 +8,4 @@ result.json
 results/
 run.sh
 saves/
-__pycache__
+__pycache__/
